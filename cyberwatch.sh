@@ -373,13 +373,29 @@ EOF
 install_cli_command() {
     print_status "Installing global 'cyberwatch' command..."
     # Place a managed copy of this script into the install dir for stable path
-    cp "$(readlink -f "$0")" "$INSTALL_DIR/cyberwatch.sh" 2>/dev/null || cp "$0" "$INSTALL_DIR/cyberwatch.sh"
-    chown "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/cyberwatch.sh" || true
-    chmod +x "$INSTALL_DIR/cyberwatch.sh"
+    local SCRIPT_SRC
+    if [ -n "${BASH_SOURCE[0]}" ]; then
+        SCRIPT_SRC="${BASH_SOURCE[0]}"
+    else
+        SCRIPT_SRC="$0"
+    fi
+    # Resolve symlink if any
+    if command -v readlink >/dev/null 2>&1; then
+        local RL
+        RL=$(readlink -f "$SCRIPT_SRC" 2>/dev/null || true)
+        if [ -n "$RL" ]; then SCRIPT_SRC="$RL"; fi
+    fi
+    if [ -r "$SCRIPT_SRC" ]; then
+        cp "$SCRIPT_SRC" "$INSTALL_DIR/cyberwatch.sh"
+    else
+        print_warning "Could not determine script path; expecting script already at $INSTALL_DIR/cyberwatch.sh"
+    fi
+    chown "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/cyberwatch.sh" 2>/dev/null || true
+    chmod +x "$INSTALL_DIR/cyberwatch.sh" 2>/dev/null || true
     # Create system-wide launcher
-    cat > /usr/local/bin/cyberwatch << EOF
+    cat > /usr/local/bin/cyberwatch << 'EOF'
 #!/bin/bash
-exec sudo "$INSTALL_DIR/cyberwatch.sh" "${@}"
+exec sudo /opt/cyberwatch/cyberwatch.sh "$@"
 EOF
     chmod +x /usr/local/bin/cyberwatch
     print_success "Command installed: cyberwatch"

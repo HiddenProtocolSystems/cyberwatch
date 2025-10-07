@@ -533,7 +533,8 @@ install_dependencies() {
     case $OS in
         ubuntu|debian)
             apt-get update
-            apt-get install -y python3 python3-pip python3-venv curl wget git jq htop iotop nethogs fail2ban bc net-tools ufw iptables-persistent
+            # Note: iptables-persistent conflicts with ufw on some Ubuntu releases; omit it
+            apt-get install -y python3 python3-pip python3-venv curl wget git jq htop iotop nethogs fail2ban bc net-tools ufw
             ;;
         centos|rhel|fedora)
             if command -v dnf &> /dev/null; then

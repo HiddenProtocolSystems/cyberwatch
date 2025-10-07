@@ -589,7 +589,8 @@ setup_python_environment() {
     source venv/bin/activate
     
     pip install --upgrade pip
-    pip install psutil requests flask prometheus-client signal-cli-rest-api-client
+    # Core runtime deps (Signal alerts use HTTP directly; no extra client lib needed)
+    pip install psutil requests flask prometheus-client
     
     print_success "Python environment created and dependencies installed"
 }
